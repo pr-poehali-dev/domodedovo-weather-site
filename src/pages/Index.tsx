@@ -11,6 +11,9 @@ interface WeatherData {
     humidity: number;
     wind: number;
     pressure: number;
+    description?: string;
+    sunrise?: string;
+    sunset?: string;
   };
   forecast: Array<{
     day: string;
@@ -18,6 +21,7 @@ interface WeatherData {
     condition: string;
     description: string;
   }>;
+  city?: string;
 }
 
 const Index = () => {
@@ -42,12 +46,39 @@ const Index = () => {
   });
 
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+  const [cityName, setCityName] = useState('Домодедово');
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://functions.poehali.dev/1a7d927f-4273-4425-8622-333ece91d6bf?city=Domodedovo');
+        const data = await response.json();
+        
+        if (response.ok) {
+          setWeather(data);
+          if (data.city) {
+            setCityName(data.city);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch weather:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 600000);
+    return () => clearInterval(interval);
   }, []);
 
   const getWeatherIcon = (condition: string) => {
@@ -86,7 +117,7 @@ const Index = () => {
 
       <div className="relative z-10 container mx-auto px-4 py-8">
         <header className="text-center mb-12 animate-slide-up">
-          <h1 className="text-6xl font-black text-white mb-2">Домодедово</h1>
+          <h1 className="text-6xl font-black text-white mb-2">{cityName}</h1>
           <p className="text-2xl text-white/90">
             {currentTime.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
@@ -110,9 +141,11 @@ const Index = () => {
                     </div>
                   </div>
                   <p className="text-2xl text-white font-semibold capitalize">
-                    {weather.current.condition === 'sunny' && 'Солнечно'}
-                    {weather.current.condition === 'cloudy' && 'Облачно'}
-                    {weather.current.condition === 'rainy' && 'Дождливо'}
+                    {weather.current.description || (
+                      weather.current.condition === 'sunny' ? 'Солнечно' :
+                      weather.current.condition === 'cloudy' ? 'Облачно' :
+                      weather.current.condition === 'rainy' ? 'Дождливо' : 'Ясно'
+                    )}
                   </p>
                 </div>
 
@@ -195,7 +228,7 @@ const Index = () => {
                         <Icon name="Sunrise" size={32} className="text-white" />
                         <div>
                           <p className="text-white/70 text-sm">Восход</p>
-                          <p className="text-white text-xl font-bold">05:42</p>
+                          <p className="text-white text-xl font-bold">{weather.current.sunrise || '05:42'}</p>
                         </div>
                       </div>
                     </div>
@@ -218,7 +251,7 @@ const Index = () => {
                         <Icon name="Sunset" size={32} className="text-white" />
                         <div>
                           <p className="text-white/70 text-sm">Закат</p>
-                          <p className="text-white text-xl font-bold">20:15</p>
+                          <p className="text-white text-xl font-bold">{weather.current.sunset || '20:15'}</p>
                         </div>
                       </div>
                     </div>

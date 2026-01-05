@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Test weather endpoint for Domodedovo",
+      "method": "GET",
+      "path": "/?city=Domodedovo",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "current": {
+          "temp": "number",
+          "feels_like": "number",
+          "condition": "string",
+          "humidity": "number",
+          "wind": "number",
+          "pressure": "number"
+        },
+        "forecast": "array",
+        "city": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
